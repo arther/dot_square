@@ -1,7 +1,7 @@
 defmodule DotSquare.State do
   alias DotSquare.Vertex
 
-  defstruct vertices: [], players: %{A: nil, B: nil}, current_turn: A, size: 5
+  defstruct vertices: [], players: %{A: nil, B: nil}, current_turn: A, size: 5, points: %{A: 0, B: 0}
 
   def new(size) do
     %__MODULE__{size: size}
@@ -40,14 +40,23 @@ defmodule DotSquare.State do
     switch_turn_internal(state, state.current_turn)
   end
 
+  defp update_state(state, {:ok, vertices}) do
+    state = %__MODULE__{state | vertices: vertices}
+    switch_turn(state)
+  end
+
+  defp update_state(state, {:error, _vertices}) do
+    state
+  end
+
   def add_vertex(%__MODULE__{} = state, start_point, end_point) do
     pair = {start_point, end_point}
     vertices =  state.vertices
     if(Vertex.is_already_marked?(pair, vertices, false)) do
-      {:error, "Vertex already exists"}
+      {:error, "Invalid vertex pair"}
     else
-      state = %__MODULE__{state | vertices: Vertex.add_vertix(vertices, pair, state.current_turn)}
-      state = switch_turn(state)
+      vertex_resp = Vertex.add_vertix(vertices, pair, state.current_turn, state.size)
+      state = update_state(state, vertex_resp)
       {:ok, state}
     end
   end

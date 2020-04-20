@@ -26,6 +26,6 @@ defmodule DotSquare.StateTest do
 
     {:error, msg} = State.add_vertex(state, 1, 2)
     assert state.current_turn == B
-    assert msg == "Vertex already exists"
+    assert msg == "Invalid vertex pair"
   end
 end
