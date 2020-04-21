@@ -3,6 +3,10 @@ defmodule DotSquare.VertexTest do
   doctest DotSquare
   alias DotSquare.Vertex
 
+  def construct_vertex(pairs) do
+    Enum.map(pairs, fn(pair) -> %Vertex{pair: pair} end)
+  end
+
   test "add vertix test" do
     vertices = [%Vertex{pair: {1, 2}, player: A}]
     assert Vertex.add_vertix(vertices, {2, 3}, A, 5) == {:ok, [%Vertex{pair: {1, 2}, player: A}, %Vertex{pair: {2, 3}, player: A}]}
@@ -17,13 +21,33 @@ defmodule DotSquare.VertexTest do
   end
 
   test "border find test" do
-    assert Vertex.border({21, 22}, 5, true) == :bottom
-    assert Vertex.border({2, 3}, 5, true) == :top
+    assert Vertex.border({21, 22}, 5, :row) == :bottom
+    assert Vertex.border({2, 3}, 5, :row) == :top
 
-    assert Vertex.border({5, 10}, 5, false) == :right
-    assert Vertex.border({6, 11}, 5, false) == :left
+    assert Vertex.border({5, 10}, 5, :col) == :right
+    assert Vertex.border({6, 11}, 5, :col) == :left
 
-    assert Vertex.border({6, 7}, 5, true) == :none
-    assert Vertex.border({12, 17}, 5, false) == :none
+    assert Vertex.border({6, 7}, 5, :row) == :none
+    assert Vertex.border({12, 17}, 5, :col) == :none
+  end
+
+  test "get score test" do
+    vertices = construct_vertex([{1, 6}, {2, 7}, {6, 7}])
+    assert Vertex.get_score(vertices, {1, 2}, 5) == 1
+
+    vertices = construct_vertex([{4, 9}, {5, 10}, {9, 10}])
+    assert Vertex.get_score(vertices, {4, 5}, 5) == 1
+
+    vertices = construct_vertex([{4, 5}, {4, 9}, {5, 10}, {9, 14}, {10, 15}, {14, 15}])
+    assert Vertex.get_score(vertices, {9, 10}, 5) == 2
+
+    vertices = construct_vertex([{4, 5}, {4, 9}, {5, 10}, {9, 14}, {10, 15}])
+    assert Vertex.get_score(vertices, {9, 10}, 5) == 1
+
+    vertices = construct_vertex([{7,8}, {7, 12}, {8, 13}, {12, 17}, {17,18}, {13, 18}])
+    assert Vertex.get_score(vertices, {12,13}, 5) == 2
+
+    vertices = construct_vertex([{7,8}, {7, 12}, {8, 13}, {12, 17}, {17,18}, {13, 18}])
+    assert Vertex.get_score(vertices, {13, 14}, 5) == 0
   end
 end

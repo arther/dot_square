@@ -1,6 +1,5 @@
 defmodule DotSquare.Vertex do
-
-  defstruct pair: {}, player: nil;
+  defstruct pair: {}, player: nil
 
   def is_already_marked?(_, _, true) do
     true
@@ -37,33 +36,107 @@ defmodule DotSquare.Vertex do
     end
   end
 
-  defp row?({a, b} = _pair) do
-    b - a == 1
-  end
+  defp row_or_col({a, b} = _pair) when (b - a == 1), do: :row
 
-  defp col?({a, b} = _pair, size) do
-    b - a == size
-  end
+  defp row_or_col(_pair), do: :col
 
-  def border({a, _b} = _pair, size, false = _row?) do
-    case (rem(a, size)) do
-      0 ->  :right
+  def border({a, _b} = _pair, size, :col) do
+    case rem(a, size) do
+      0 -> :right
       1 -> :left
       _ -> :none
     end
   end
 
-  def border({a, b} = _pair, size, true = _row?) do
+  def border({a, _b} = _pair, size, :row) do
     last_row = size * (size - 1)
-    case (a) do
-      x  when x < size -> :top
+
+    case a do
+      x when x < size -> :top
       x when x > last_row -> :bottom
       _ -> :none
     end
   end
 
-  def square_formed?(vertices, pair, size) do
-    row?(pair)
+  # a--b
+  # |  |
+  # c--d
+  # |  |
+  # e--f
+  defp get_box_pair(:row, :none, {c, d} = _pair, size) do
+    a = c - size
+    b = d - size
+    e = c + size
+    f = d + size
+    [{a, b}, {a, c}, {b, d}, {c, e}, {d, f}, {e, f}]
   end
 
+  # c--d
+  # |  |
+  # e--f
+  defp get_box_pair(:row, :top, {c, d} = _pair, size) do
+    e = c + size
+    f = d + size
+    [{c, e}, {d, f}, {e, f}]
+  end
+
+  # a--b
+  # |  |
+  # c--d
+  defp get_box_pair(:row, :bottom, {c, d} = _pair, size) do
+    a = c - size
+    b = d - size
+    [{a, b}, {a, c}, {b, d}]
+  end
+
+  # a--c--e
+  # |  |  |
+  # b--d--f
+  defp get_box_pair(:col, :none, {c, d} = _pair, _size) do
+    a = c - 1
+    b = d - 1
+    e = c + 1
+    f = d + 1
+    [{a, b}, {a, c}, {b, d}, {c, e}, {d, f}, {e, f}]
+  end
+
+  # a--c
+  # |  |
+  # b--d
+  defp get_box_pair(:col, :right, {c, d} = _pair, _size) do
+    a = c - 1
+    b = d - 1
+    [{a, b}, {a, c}, {b, d}]
+  end
+
+  # c--e
+  # |  |
+  # d--f
+  defp get_box_pair(:col, :left, {c, d} = _pair, _size) do
+    e = c + 1
+    f = d + 1
+    [{c, e}, {d, f}, {e, f}]
+  end
+
+  defp score([x, x, x]) when x==true, do: 1
+
+  defp score([_, _, _]), do: 0
+
+  defp score([x, x, x, x, x, x]) when x==true, do: 2
+
+  defp score([x, x, x, _, _, _]) when x==true, do: 1
+
+  defp score([_, _, _, y, y, y]) when y==true, do: 1
+
+  defp score([x, x, x, x, x, x]) when x==false, do: 0
+
+  defp score([_,_,_,_,_,_]), do: 0
+
+  def get_score(vertices, pair, size) do
+    axis = row_or_col(pair)
+    border = border(pair, size, axis)
+    get_box_pair(axis, border, pair, size)
+    |> Enum.map(fn(pair) -> is_already_marked?(pair, vertices, false) end)
+    |> score
+  end
 end
