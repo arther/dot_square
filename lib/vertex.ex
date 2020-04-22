@@ -139,4 +139,5 @@ defmodule DotSquare.Vertex do
     |> Enum.map(fn(pair) -> is_already_marked?(pair, vertices, false) end)
     |> score
   end
+
 end

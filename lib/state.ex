@@ -16,6 +16,14 @@ defmodule DotSquare.State do
     %__MODULE__{state | players:  %{state.players | B: player }}
   end
 
+  defp update_score(points, A, score) do
+    %{points | A: points[:A] + score }
+  end
+
+  defp update_score(points, B, score) do
+    %{points | B: points[:B] + score }
+  end
+
   def has_enough_players(%__MODULE__{players: %{A: nil, B: _}}) do
     false
   end
@@ -40,12 +48,18 @@ defmodule DotSquare.State do
     switch_turn_internal(state, state.current_turn)
   end
 
-  defp update_state(state, {:ok, vertices}) do
+  defp update_state(state, {:ok, vertices}, score) when score == 0 do
     state = %__MODULE__{state | vertices: vertices}
     switch_turn(state)
   end
 
-  defp update_state(state, {:error, _vertices}) do
+  defp update_state(state, {:ok, vertices}, score) when score > 0 do
+    player = state.current_turn
+    points = update_score(state.points, player, score)
+    %__MODULE__{state | vertices: vertices, points: points }
+  end
+
+  defp update_state(state, {:error, _vertices}, _score) do
     state
   end
 
@@ -56,7 +70,8 @@ defmodule DotSquare.State do
       {:error, "Invalid vertex pair"}
     else
       vertex_resp = Vertex.add_vertix(vertices, pair, state.current_turn, state.size)
-      state = update_state(state, vertex_resp)
+      score = Vertex.get_score(state.vertices, pair, state.size)
+      state = update_state(state, vertex_resp, score)
       {:ok, state}
     end
   end
