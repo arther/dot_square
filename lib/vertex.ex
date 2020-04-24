@@ -14,18 +14,18 @@ defmodule DotSquare.Vertex do
     is_already_marked?(pair, tail, head.pair == pair)
   end
 
-  defp valid_pair?(0, _, 1), do: false
+  defp valid_pair?(0, _, true, false), do: false
 
-  defp valid_pair?(_, 0, 1), do: false
+  defp valid_pair?(_, 0, true, false), do: false
 
-  defp valid_pair?(0, 0, 5), do: true
+  defp valid_pair?(0, 0, false, true), do: true
 
-  defp valid_pair?(x, x, 5), do: true
+  defp valid_pair?(_, _, false, true), do: true
 
-  defp valid_pair?(_, _, 1), do: true
+  defp valid_pair?(_, _, true, false), do: true
 
   defp valid_pair?({a, b} = _pair, size) do
-    valid_pair?(rem(a, size), rem(b, size), b - a)
+    valid_pair?(rem(a, size), rem(b, size), (b - a) == 1, (b - a) == size)
   end
 
   def add_vertix(vertices, pair, player, size) do
