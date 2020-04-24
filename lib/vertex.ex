@@ -36,7 +36,7 @@ defmodule DotSquare.Vertex do
     end
   end
 
-  defp row_or_col({a, b} = _pair) when (b - a == 1), do: :row
+  defp row_or_col({a, b} = _pair) when b - a == 1, do: :row
 
   defp row_or_col(_pair), do: :col
 
@@ -68,7 +68,7 @@ defmodule DotSquare.Vertex do
     b = d - size
     e = c + size
     f = d + size
-    [{a, b}, {a, c}, {b, d}, {c, e}, {d, f}, {e, f}]
+    [[{a, b}, {a, c}, {b, d}], [{c, e}, {d, f}, {e, f}]]
   end
 
   # c--d
@@ -77,7 +77,7 @@ defmodule DotSquare.Vertex do
   defp get_box_pair(:row, :top, {c, d} = _pair, size) do
     e = c + size
     f = d + size
-    [{c, e}, {d, f}, {e, f}]
+    [[{c, e}, {d, f}, {e, f}]]
   end
 
   # a--b
@@ -86,7 +86,7 @@ defmodule DotSquare.Vertex do
   defp get_box_pair(:row, :bottom, {c, d} = _pair, size) do
     a = c - size
     b = d - size
-    [{a, b}, {a, c}, {b, d}]
+    [[{a, b}, {a, c}, {b, d}]]
   end
 
   # a--c--e
@@ -97,7 +97,7 @@ defmodule DotSquare.Vertex do
     b = d - 1
     e = c + 1
     f = d + 1
-    [{a, b}, {a, c}, {b, d}, {c, e}, {d, f}, {e, f}]
+    [[{a, b}, {a, c}, {b, d}], [{c, e}, {d, f}, {e, f}]]
   end
 
   # a--c
@@ -106,7 +106,7 @@ defmodule DotSquare.Vertex do
   defp get_box_pair(:col, :right, {c, d} = _pair, _size) do
     a = c - 1
     b = d - 1
-    [{a, b}, {a, c}, {b, d}]
+    [[{a, b}, {a, c}, {b, d}]]
   end
 
   # c--e
@@ -115,29 +115,32 @@ defmodule DotSquare.Vertex do
   defp get_box_pair(:col, :left, {c, d} = _pair, _size) do
     e = c + 1
     f = d + 1
-    [{c, e}, {d, f}, {e, f}]
+    [[{c, e}, {d, f}, {e, f}]]
   end
 
-  defp score([x, x, x]) when x==true, do: 1
+  defp score([[x, x, x]]) when x == true, do: 1
 
-  defp score([_, _, _]), do: 0
+  defp score([[_, _, _]]), do: 0
 
-  defp score([x, x, x, x, x, x]) when x==true, do: 2
+  defp score([[x, x, x], [x, x, x]]) when x == true, do: 2
 
-  defp score([x, x, x, _, _, _]) when x==true, do: 1
+  defp score([[x, x, x], [_, _, _]]) when x == true, do: 1
 
-  defp score([_, _, _, y, y, y]) when y==true, do: 1
+  defp score([[_, _, _], [y, y, y]]) when y == true, do: 1
 
-  defp score([x, x, x, x, x, x]) when x==false, do: 0
-
-  defp score([_,_,_,_,_,_]), do: 0
+  defp score([[_, _, _], [_, _, _]]), do: 0
 
   def get_score(vertices, pair, size) do
     axis = row_or_col(pair)
     border = border(pair, size, axis)
-    get_box_pair(axis, border, pair, size)
-    |> Enum.map(fn(pair) -> is_already_marked?(pair, vertices, false) end)
-    |> score
-  end
+    sides = get_box_pair(axis, border, pair, size)
 
+    score =
+      sides
+      |> Enum.map(fn pairs ->
+        Enum.map(pairs, fn pair -> is_already_marked?(pair, vertices, false) end)
+      end)
+      |> score
+    {score, sides}
+  end
 end

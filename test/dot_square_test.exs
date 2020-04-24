@@ -16,20 +16,20 @@ defmodule DotSquareTest do
   end
 
   test "add vertex test" do
-    DotSquare.add_player(@game_id, A, "test player")
-    DotSquare.add_player(@game_id, B, "test player")
+    DotSquare.add_player(@game_id, :A, "test player")
+    DotSquare.add_player(@game_id, :B, "test player")
     {a, state} = DotSquare.add_vertex(@game_id, 1, 2)
     assert a == :ok
-    assert state.vertices == [%Vertex{pair: {1, 2}, player: A}]
+    assert state.vertices == [%Vertex{pair: {1, 2}, player: :A}]
 
     {a, _b} = DotSquare.add_vertex(@game_id, 1, 2)
     assert a == :ok
-    assert state.vertices == [%Vertex{pair: {1, 2}, player: A}]
+    assert state.vertices == [%Vertex{pair: {1, 2}, player: :A}]
 
   end
 
   test "add player test" do
-    state = DotSquare.add_player(@game_id, A, "test player")
+    state = DotSquare.add_player(@game_id, :A, "test player")
     assert state.players == %{A: "test player", B: nil}
   end
 end
