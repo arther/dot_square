@@ -21,12 +21,12 @@ defmodule DotSquare.State do
     %__MODULE__{state | players: %{state.players | B: player}}
   end
 
-  defp update_score(points, :A, score) do
-    %{points | A: points[:A] + score}
+  defp update_player_points(%__MODULE__{current_turn: :A} = state, score) do
+    %__MODULE__{state | points: %{state.points | A: state.points[:A] + score}}
   end
 
-  defp update_score(points, :B, score) do
-    %{points | B: points[:B] + score}
+  defp update_player_points(%__MODULE__{current_turn: :B} = state, score) do
+    %__MODULE__{state | points: %{state.points | B: state.points[:B] + score}}
   end
 
   def has_enough_players(%__MODULE__{players: %{A: nil, B: _}}) do
@@ -53,59 +53,62 @@ defmodule DotSquare.State do
     switch_turn_internal(state, state.current_turn)
   end
 
-  defp update_boxes(state, sides, pair, 2, :B) do
-    side1 = Enum.at(sides, 0)
-    side2 = Enum.at(sides, 1)
-
-    box1 = side1 ++ pair
-    box2 = side2 ++ pair
-    %{state | boxes: %{state.boxes | B: state.boxes[:B] ++ [box1] ++ [box2]}}
-  end
-
-  defp update_boxes(state, sides, pair, 1, :B) do
-    side = Enum.at(sides, 0)
-    box = side ++ pair
+  defp update_boxes(%__MODULE__{current_turn: :B} = state, sides, pair, 1 = _score) do
+    box = sides ++ pair
     %{state | boxes: %{state.boxes | B: state.boxes[:B] ++ [box]}}
   end
 
-  defp update_boxes(state, sides, pair, 2, :A) do
-    side1 = Enum.at(sides, 0)
-    side2 = Enum.at(sides, 1)
-
-    box1 = side1 ++ pair
-    box2 = side2 ++ pair
-    %{state | boxes: %{state.boxes | A: state.boxes[:A] ++ [box1] ++ [box2]}}
-  end
-
-  defp update_boxes(state, sides, pair, 1, :A) do
-    side = Enum.at(sides, 0)
-
-    box = side ++ pair
+  defp update_boxes(%__MODULE__{current_turn: :A} = state, sides, pair, 1 = _score) do
+    box = sides ++ pair
     %{state | boxes: %{state.boxes | A: state.boxes[:A] ++ [box]}}
   end
 
-  defp update_boxes(state, _sides, _pair, 0, _) do
+  defp update_boxes(state, _sides, _pair, 0 = _score) do
     state
   end
 
-  defp update_state(state, {:ok, vertices}, score) when score == 0 do
-    state = %__MODULE__{state | vertices: vertices}
-    switch_turn(state)
+  defp udpate_vertices(state, {:ok, vertices}) do
+    %__MODULE__{state | vertices: vertices}
   end
 
-  defp update_state(state, {:ok, vertices}, score) when score > 0 do
-    player = state.current_turn
-    points = update_score(state.points, player, score)
-    %__MODULE__{state | vertices: vertices, points: points}
-  end
-
-  defp update_state(state, {:error, _vertices}, _score) do
+  defp udpate_vertices(state, {:error, _vertices}) do
     state
   end
 
   defp update_game_status(state) do
-    game_over = state.size * (state.size - 1) * 2
-    %__MODULE__{state | game_done: game_over}
+    total_vertices = state.size * (state.size - 1) * 2
+    %__MODULE__{state | game_done: total_vertices == length(state.vertices)}
+  end
+
+  defp update_turn(state, :A) do
+    %__MODULE__{state | current_turn: :B}
+  end
+
+  defp update_turn(state, :B) do
+    %__MODULE__{state | current_turn: :A}
+  end
+
+  defp update_turn(state, [{x, _}]) when x == 0 do
+    update_turn(state, state.current_turn)
+  end
+
+  defp update_turn(state, [{x, _}, {x, _}]) when x == 0 do
+    update_turn(state, state.current_turn)
+  end
+
+  defp update_turn(state, [{_, _}, {_, _}]), do: state
+  defp update_turn(state, [{_, _}]), do: state
+
+  defp handle_score_resp(state, _pair, []) do
+    state
+  end
+
+  defp handle_score_resp(state, pair, sides_list) do
+    [side | rest] = sides_list
+    {score, sides} = side
+    state = update_player_points(state, score)
+    state = update_boxes(state, sides, [pair], score)
+    handle_score_resp(state, pair, rest)
   end
 
   def add_vertex(%__MODULE__{} = state, start_point, end_point) do
@@ -116,9 +119,10 @@ defmodule DotSquare.State do
       {:error, "Invalid vertex pair"}
     else
       vertex_resp = Vertex.add_vertix(vertices, pair, state.current_turn, state.size)
-      {score, sides} = Vertex.get_score(state.vertices, pair, state.size)
-      state = update_boxes(state, sides, [pair], score, state.current_turn)
-      state = update_state(state, vertex_resp, score)
+      score_resp = Vertex.get_score(state.vertices, pair, state.size)
+      state = udpate_vertices(state, vertex_resp)
+      state = update_turn(state, score_resp)
+      state = handle_score_resp(state, pair, score_resp)
       state = update_game_status(state)
       {:ok, state}
     end

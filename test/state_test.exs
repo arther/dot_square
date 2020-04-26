@@ -17,8 +17,8 @@ defmodule DotSquare.StateTest do
     {:ok, state} = State.add_vertex(state, 1, 2)
     assert state.current_turn == :B
     assert state.vertices == [%Vertex{pair: {1, 2}, player: :A}]
-
     {:ok, state} = State.add_vertex(state, 2, 7)
+    assert state.current_turn == :A
     {:ok, state} = State.add_vertex(state, 6, 7)
     assert state.current_turn == :B
 

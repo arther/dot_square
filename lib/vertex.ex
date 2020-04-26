@@ -14,9 +14,9 @@ defmodule DotSquare.Vertex do
     is_already_marked?(pair, tail, head.pair == pair)
   end
 
-  defp valid_pair?(0, _, true, false), do: false
+  defp valid_pair?(0, 1, true, false), do: false
 
-  defp valid_pair?(_, 0, true, false), do: false
+  defp valid_pair?(1, 0, true, false), do: false
 
   defp valid_pair?(0, 0, false, true), do: true
 
@@ -25,7 +25,7 @@ defmodule DotSquare.Vertex do
   defp valid_pair?(_, _, true, false), do: true
 
   defp valid_pair?({a, b} = _pair, size) do
-    valid_pair?(rem(a, size), rem(b, size), (b - a) == 1, (b - a) == size)
+    valid_pair?(rem(a, size), rem(b, size), b - a == 1, b - a == size)
   end
 
   def add_vertix(vertices, pair, player, size) do
@@ -118,9 +118,13 @@ defmodule DotSquare.Vertex do
     [[{c, e}, {d, f}, {e, f}]]
   end
 
-  defp score([[x, x, x]]) when x == true, do: 1
+  defp score([x, x, x], pairs) when x == true do
+    {1, pairs}
+  end
 
-  defp score([[_, _, _]]), do: 0
+  defp score([_, _, _], pairs) do
+    {0, pairs}
+  end
 
   defp score([[x, x, x], [x, x, x]]) when x == true, do: 2
 
@@ -135,12 +139,8 @@ defmodule DotSquare.Vertex do
     border = border(pair, size, axis)
     sides = get_box_pair(axis, border, pair, size)
 
-    score =
-      sides
-      |> Enum.map(fn pairs ->
-        Enum.map(pairs, fn pair -> is_already_marked?(pair, vertices, false) end)
-      end)
-      |> score
-    {score, sides}
+    Enum.map(sides, fn pairs ->
+      score(Enum.map(pairs, fn pair -> is_already_marked?(pair, vertices, false) end), pairs)
+    end)
   end
 end

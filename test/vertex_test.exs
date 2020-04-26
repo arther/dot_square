@@ -33,21 +33,21 @@ defmodule DotSquare.VertexTest do
 
   test "get score test" do
     vertices = construct_vertex([{1, 6}, {2, 7}, {6, 7}])
-    assert Vertex.get_score(vertices, {1, 2}, 5) == {1, [[{1, 6}, {2, 7}, {6, 7}]]}
+    assert Vertex.get_score(vertices, {1, 2}, 5) == [{1, [{1, 6}, {2, 7}, {6, 7}]}]
 
     vertices = construct_vertex([{4, 9}, {5, 10}, {9, 10}])
-    assert Vertex.get_score(vertices, {4, 5}, 5) == {1, [[{4, 9}, {5, 10}, {9, 10}]]}
+    assert Vertex.get_score(vertices, {4, 5}, 5) == [{1, [{4, 9}, {5, 10}, {9, 10}]}]
 
     vertices = construct_vertex([{4, 5}, {4, 9}, {5, 10}, {9, 14}, {10, 15}, {14, 15}])
-    assert Vertex.get_score(vertices, {9, 10}, 5) == {2, [[{4, 5}, {4, 9}, {5, 10}], [{9, 14}, {10, 15}, {14, 15}]]}
+    assert Vertex.get_score(vertices, {9, 10}, 5) == [{1, [{4, 5}, {4, 9}, {5, 10}]}, {1, [{9, 14}, {10, 15}, {14, 15}]}]
 
     vertices = construct_vertex([{4, 5}, {4, 9}, {5, 10}, {9, 14}, {10, 15}])
-    assert Vertex.get_score(vertices, {9, 10}, 5) == {1, [[{4, 5}, {4, 9}, {5, 10}], [{9, 14}, {10, 15}, {14, 15}]]}
+    assert Vertex.get_score(vertices, {9, 10}, 5) == [{1, [{4, 5}, {4, 9}, {5, 10}]}, {0, [{9, 14}, {10, 15}, {14, 15}]}]
 
     vertices = construct_vertex([{7,8}, {7, 12}, {8, 13}, {12, 17}, {17,18}, {13, 18}])
-    assert Vertex.get_score(vertices, {12,13}, 5) == {2, [[{7, 8}, {7, 12}, {8, 13}], [{12, 17}, {13, 18}, {17, 18}]]}
+    assert Vertex.get_score(vertices, {12,13}, 5) == [{1, [{7, 8}, {7, 12}, {8, 13}]}, {1, [{12, 17}, {13, 18}, {17, 18}]}]
 
     vertices = construct_vertex([{7,8}, {7, 12}, {8, 13}, {12, 17}, {17,18}, {13, 18}])
-    assert Vertex.get_score(vertices, {13, 14}, 5) == {0, [[{8, 9}, {8, 13}, {9, 14}], [{13, 18}, {14, 19}, {18, 19}]]}
+    assert Vertex.get_score(vertices, {13, 14}, 5) == [{0, [{8, 9}, {8, 13}, {9, 14}]}, {0, [{13, 18}, {14, 19}, {18, 19}]}]
   end
 end
