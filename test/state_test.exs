@@ -7,8 +7,8 @@ defmodule DotSquare.StateTest do
   test "check if we have enough players to start" do
     state = State.new(5)
     assert State.has_enough_players(state) == false
-    state = State.set_player(state, :A, "Player 1")
-    state = State.set_player(state, :B, "Player 2")
+    state = State.set_player(state, "Player 1")
+    state = State.set_player(state, "Player 2")
     assert State.has_enough_players(state) == true
   end
 

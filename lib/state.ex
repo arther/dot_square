@@ -13,12 +13,20 @@ defmodule DotSquare.State do
     %__MODULE__{size: size}
   end
 
-  def set_player(state, :A, player) do
+  def set_player(%__MODULE__{players: %{A: nil, B: _}} = state, player) do
     %__MODULE__{state | players: %{state.players | A: player}}
   end
 
-  def set_player(state, :B, player) do
+  def set_player(%__MODULE__{players: %{A: _, B: nil}} = state, player) do
     %__MODULE__{state | players: %{state.players | B: player}}
+  end
+
+  def unset_player(state, :A) do
+    %__MODULE__{state | players: %{state.players | A: nil}}
+  end
+
+  def unset_player(state, :B) do
+    %__MODULE__{state | players: %{state.players | B: nil}}
   end
 
   defp update_player_points(%__MODULE__{current_turn: :A} = state, score) do

@@ -20,13 +20,29 @@ defmodule DotSquare do
     get_state(String.to_atom(game_id))
   end
 
-  def add_player(game_id, player_id, name) when is_atom(game_id) do
-    Agent.update(game_id, fn(state) -> State.set_player(state, player_id, name) end)
-    get_state(game_id)
+  defp add_player_internal(game_id, name, true) do
+    {:error, get_state(game_id)}
   end
 
-  def add_player(game_id, player_id, name) when is_binary(game_id) do
-    add_player(String.to_atom(game_id), player_id, name)
+  defp add_player_internal(game_id, name, false) do
+    Agent.update(game_id, fn(state) -> State.set_player(state, name) end)
+    {:ok, get_state(game_id)}
+  end
+  def add_player(game_id, name) when is_atom(game_id) do
+    add_player_internal(game_id, name, State.has_enough_players(get_state(game_id)))
+  end
+
+  def add_player(game_id, name) when is_binary(game_id) do
+    add_player(String.to_atom(game_id), name)
+  end
+
+  def remove_player(game_id, player_id) when is_atom(game_id) do
+    Agent.update(game_id, fn(state) -> State.unset_player(state, player_id) end)
+    {:ok, get_state(game_id)}
+  end
+
+  def remove_player(game_id, player_id) when is_binary(game_id) do
+    remove_player(String.to_atom(game_id), player_id)
   end
 
   def add_vertex(game_id, start_point, end_point) when is_atom(game_id) do
