@@ -20,7 +20,7 @@ defmodule DotSquare do
     get_state(String.to_atom(game_id))
   end
 
-  defp add_player_internal(game_id, name, true) do
+  defp add_player_internal(game_id, _name, true) do
     {:error, get_state(game_id)}
   end
 

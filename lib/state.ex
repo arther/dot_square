@@ -29,6 +29,18 @@ defmodule DotSquare.State do
     %__MODULE__{state | players: %{state.players | B: nil}}
   end
 
+  def get_unset_player(%__MODULE__{players: %{A: nil, B: _}} = _state) do
+    :A
+  end
+
+  def get_unset_player(%__MODULE__{players: %{A: _, B: nil}} = _state) do
+    :B
+  end
+
+  def get_unset_player(%__MODULE__{players: %{A: _, B: _}} = _state) do
+    nil
+  end
+
   defp update_player_points(%__MODULE__{current_turn: :A} = state, score) do
     %__MODULE__{state | points: %{state.points | A: state.points[:A] + score}}
   end
